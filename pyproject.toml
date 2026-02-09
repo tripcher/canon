@@ -1,6 +1,6 @@
 [project]
 name = "mcp-canon"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP server providing architectural patterns and best practices to LLM agents via RAG"
 readme = "README.md"
 license = { text = "MIT" }
