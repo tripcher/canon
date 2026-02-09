@@ -96,8 +96,8 @@ class DatabaseWriter:
             return {}
 
         table = self.db.open_table("guides")
-        df = table.search().select(["id", "content_hash"]).to_pandas()
-        return dict(zip(df["id"], df["content_hash"], strict=False))
+        rows = table.search().select(["id", "content_hash"]).to_list()
+        return {row["id"]: row["content_hash"] for row in rows}
 
     def delete_guide(self, guide_id: str) -> None:
         """Delete a guide and its chunks from the database."""

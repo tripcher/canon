@@ -90,7 +90,7 @@ class SearchEngine:
         if filter_expr:
             query = query.where(filter_expr)
 
-        df = query.select(["id", "name", "namespace", "tags", "description"]).to_pandas()
+        rows = query.select(["id", "name", "namespace", "tags", "description"]).to_list()
 
         return [
             GuideListItem(
@@ -100,7 +100,7 @@ class SearchEngine:
                 tags=row["tags"],
                 description=row["description"],
             )
-            for _, row in df.iterrows()
+            for row in rows
         ]
 
     def search_chunks(
@@ -174,7 +174,7 @@ class SearchEngine:
         if filter_expr:
             search = search.where(filter_expr, prefilter=True)
 
-        df = search.to_pandas()
+        rows = search.to_list()
 
         # Use guide's relevance score for chunk score (from summary_vector similarity)
         return [
@@ -187,7 +187,7 @@ class SearchEngine:
                 relevance_score=guide_scores.get(row["guide_id"], 0.5),
                 char_count=row["char_count"],
             )
-            for _, row in df.iterrows()
+            for row in rows
         ]
 
     def search_guides_by_query(
@@ -241,28 +241,27 @@ class SearchEngine:
         if filter_expr:
             search = search.where(filter_expr, prefilter=True)
 
-        df = search.to_pandas()
+        rows = search.to_list()
 
         # Cosine distance: 0 = identical, 2 = opposite
         # Convert to similarity: similarity = 1 - distance/2
         # Filter by minimum similarity threshold
-        df["similarity"] = 1 - df["_distance"] / 2
-        df = df[df["similarity"] >= min_similarity]
+        results: list[GuideSearchResult] = []
+        for row in rows:
+            similarity = 1 - row["_distance"] / 2
+            if similarity >= min_similarity:
+                results.append(
+                    GuideSearchResult(
+                        id=row["id"],
+                        name=row["name"],
+                        namespace=row["namespace"],
+                        tags=row["tags"],
+                        description=row["description"],
+                        relevance_score=round(similarity, 2),
+                    )
+                )
 
-        if len(df) == 0:
-            return []
-
-        return [
-            GuideSearchResult(
-                id=row["id"],
-                name=row["name"],
-                namespace=row["namespace"],
-                tags=row["tags"],
-                description=row["description"],
-                relevance_score=round(row["similarity"], 2),
-            )
-            for _, row in df.iterrows()
-        ]
+        return results
 
     def get_full_guide(self, guide_id: str) -> FullGuide | None:
         """
@@ -280,18 +279,18 @@ class SearchEngine:
         safe_guide_id = self._sanitize_filter_value(guide_id, allow_slash=True)
 
         guides_table = self.db.open_table("guides")
-        df = (
+        rows = (
             guides_table.search()
             .where(f"id = '{safe_guide_id}'")
             .limit(1)
             .select(["id", "name", "namespace", "tags", "description"])
-            .to_pandas()
+            .to_list()
         )
 
-        if len(df) == 0:
+        if not rows:
             return None
 
-        row = df.iloc[0]
+        row = rows[0]
         content = self._get_guide_content(guide_id)
 
         return FullGuide(
