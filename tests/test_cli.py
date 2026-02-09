@@ -1,5 +1,6 @@
 """Tests for CLI commands."""
 
+import re
 import tempfile
 from pathlib import Path
 
@@ -8,6 +9,11 @@ from typer.testing import CliRunner
 from mcp_canon.cli.main import DEFAULT_DB_PATH, app
 
 runner = CliRunner()
+
+
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape codes from text."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 class TestDefaultDbPath:
@@ -185,9 +191,10 @@ class TestServeCommand:
         """serve --help shows host, port, and db options."""
         result = runner.invoke(app, ["serve", "--help"])
         assert result.exit_code == 0
-        assert "--host" in result.output
-        assert "--port" in result.output
-        assert "--db" in result.output
+        output = _strip_ansi(result.output)
+        assert "--host" in output
+        assert "--port" in output
+        assert "--db" in output
 
     def test_serve_uses_uvicorn(self):
         """serve command imports uvicorn (verified by help working).
