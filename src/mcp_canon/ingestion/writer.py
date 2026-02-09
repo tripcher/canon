@@ -77,9 +77,10 @@ class DatabaseWriter:
             library_path=library_path,
         )
 
-        # Create or overwrite metadata table
-        if "_metadata" in self.db.list_tables().tables:
-            self.db.drop_table("_metadata")
+        # Drop ALL tables for clean re-index (prevents stale schema conflicts)
+        for table_name in ("guides", "chunks", "_metadata"):
+            if table_name in self.db.list_tables().tables:
+                self.db.drop_table(table_name)
 
         table = self.db.create_table("_metadata", schema=DatabaseMetadata)
         table.add([metadata])
@@ -95,8 +96,8 @@ class DatabaseWriter:
             return {}
 
         table = self.db.open_table("guides")
-        guides = table.search().to_pydantic(GuideSchema)
-        return {g.id: g.content_hash for g in guides}
+        df = table.search().select(["id", "content_hash"]).to_pandas()
+        return dict(zip(df["id"], df["content_hash"], strict=False))
 
     def delete_guide(self, guide_id: str) -> None:
         """Delete a guide and its chunks from the database."""
