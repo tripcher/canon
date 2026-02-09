@@ -1,0 +1,5 @@
+$36d62aee-f5f8-4294-8279-32e6f5b89bb1²Íid ÿÿÿÿÿÿÿÿÿ*string8!guide_id ÿÿÿÿÿÿÿÿÿ*string8"	namespace ÿÿÿÿÿÿÿÿÿ*string8tags ÿÿÿÿÿÿÿÿÿ*list8item *string08 heading ÿÿÿÿÿÿÿÿÿ*string8%heading_path ÿÿÿÿÿÿÿÿÿ*string8 content ÿÿÿÿÿÿÿÿÿ*string8#chunk_index ÿÿÿÿÿÿÿÿÿ*int648"
+char_count	 ÿÿÿÿÿÿÿÿÿ*int6484vector
+ ÿÿÿÿÿÿÿÿÿ*fixed_size_list:float:76808"!
+lance.auto_cleanup.interval20"'
+lance.auto_cleanup.older_than14days

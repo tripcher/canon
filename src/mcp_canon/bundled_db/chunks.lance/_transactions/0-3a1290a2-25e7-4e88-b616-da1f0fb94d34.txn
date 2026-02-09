@@ -1,6 +1,0 @@
-$3a1290a2-25e7-4e88-b616-da1f0fb94d34²Îid ÿÿÿÿÿÿÿÿÿ*string8!guide_id ÿÿÿÿÿÿÿÿÿ*string8#
-tech_stack ÿÿÿÿÿÿÿÿÿ*string8tags ÿÿÿÿÿÿÿÿÿ*list8item *string08 heading ÿÿÿÿÿÿÿÿÿ*string8%heading_path ÿÿÿÿÿÿÿÿÿ*string8 content ÿÿÿÿÿÿÿÿÿ*string8#chunk_index ÿÿÿÿÿÿÿÿÿ*int648"
-char_count	 ÿÿÿÿÿÿÿÿÿ*int6484vector
- ÿÿÿÿÿÿÿÿÿ*fixed_size_list:float:76808"'
-lance.auto_cleanup.older_than14days"!
-lance.auto_cleanup.interval20

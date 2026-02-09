@@ -1,0 +1,6 @@
+$9201f959-5fd0-4399-9e07-ec1664827dcc²Åid ÿÿÿÿÿÿÿÿÿ*string8name ÿÿÿÿÿÿÿÿÿ*string8"	namespace ÿÿÿÿÿÿÿÿÿ*string8tags ÿÿÿÿÿÿÿÿÿ*list8item *string08$description ÿÿÿÿÿÿÿÿÿ*string8$source_type ÿÿÿÿÿÿÿÿÿ*string8%
+source_url ÿÿÿÿÿÿÿÿÿ*string08"	file_path ÿÿÿÿÿÿÿÿÿ*string8%content_hash	 ÿÿÿÿÿÿÿÿÿ*string8#
+indexed_at
+ ÿÿÿÿÿÿÿÿÿ*string8 summary ÿÿÿÿÿÿÿÿÿ*string8<summary_vector ÿÿÿÿÿÿÿÿÿ*fixed_size_list:float:76808!headings ÿÿÿÿÿÿÿÿÿ*string8"'
+lance.auto_cleanup.older_than14days"!
+lance.auto_cleanup.interval20

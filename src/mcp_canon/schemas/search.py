@@ -36,15 +36,6 @@ class GuideSearchResult(BaseModel):
     relevance_score: float
 
 
-class TaskSearchResult(BaseModel):
-    """Search result for search_within_guide response."""
-
-    heading: str
-    heading_path: str
-    content: str
-    relevance_score: float
-
-
 class FullGuide(BaseModel):
     """Full guide for get_full_guide response."""
 

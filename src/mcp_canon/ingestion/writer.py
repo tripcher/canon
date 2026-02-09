@@ -52,7 +52,7 @@ class DatabaseWriter:
         schema: type[GuideSchema] | type[ChunkSchema] | type[DatabaseMetadata],
     ) -> "Table":
         """Get existing table or create with schema."""
-        if table_name in self.db.table_names():
+        if table_name in self.db.list_tables().tables:
             return self.db.open_table(table_name)
         return self.db.create_table(table_name, schema=schema)
 
@@ -67,7 +67,7 @@ class DatabaseWriter:
         now = datetime.now(UTC).isoformat()
 
         # In append mode, preserve existing data
-        if preserve_existing and "_metadata" in self.db.table_names():
+        if preserve_existing and "_metadata" in self.db.list_tables().tables:
             self.update_last_indexed()
             return
 
@@ -78,7 +78,7 @@ class DatabaseWriter:
         )
 
         # Create or overwrite metadata table
-        if "_metadata" in self.db.table_names():
+        if "_metadata" in self.db.list_tables().tables:
             self.db.drop_table("_metadata")
 
         table = self.db.create_table("_metadata", schema=DatabaseMetadata)
@@ -91,7 +91,7 @@ class DatabaseWriter:
         Returns:
             Dict mapping guide_id to content_hash
         """
-        if "guides" not in self.db.table_names():
+        if "guides" not in self.db.list_tables().tables:
             return {}
 
         table = self.db.open_table("guides")
@@ -103,11 +103,11 @@ class DatabaseWriter:
         # Sanitize guide_id to prevent injection
         safe_id = guide_id.replace("'", "''")
 
-        if "guides" in self.db.table_names():
+        if "guides" in self.db.list_tables().tables:
             guides_table = self.db.open_table("guides")
             guides_table.delete(f"id = '{safe_id}'")
 
-        if "chunks" in self.db.table_names():
+        if "chunks" in self.db.list_tables().tables:
             chunks_table = self.db.open_table("chunks")
             chunks_table.delete(f"guide_id = '{safe_id}'")
 
@@ -182,7 +182,7 @@ class DatabaseWriter:
         """Update the last_indexed_at timestamp in metadata."""
         now = datetime.now(UTC).isoformat()
 
-        if "_metadata" in self.db.table_names():
+        if "_metadata" in self.db.list_tables().tables:
             table = self.db.open_table("_metadata")
             metadata_list = table.search().limit(1).to_pydantic(DatabaseMetadata)
             if metadata_list:
@@ -199,13 +199,13 @@ class DatabaseWriter:
 
     def get_guide_count(self) -> int:
         """Get number of guides in the database."""
-        if "guides" not in self.db.table_names():
+        if "guides" not in self.db.list_tables().tables:
             return 0
         return int(self.db.open_table("guides").count_rows())
 
     def get_chunk_count(self) -> int:
         """Get number of chunks in the database."""
-        if "chunks" not in self.db.table_names():
+        if "chunks" not in self.db.list_tables().tables:
             return 0
         return int(self.db.open_table("chunks").count_rows())
 
@@ -214,16 +214,16 @@ class DatabaseWriter:
         Create full-text search indexes for hybrid search.
 
         Creates FTS indexes on:
-        - chunks.heading - for BM25 boost on section titles
+        - chunks.heading_path - for BM25 boost on full heading breadcrumb
         - guides.headings - for BM25 boost on guide headings
 
         Uses stem=False for multilingual compatibility.
         """
-        # FTS index on chunks.heading for keyword matching
-        if "chunks" in self.db.table_names():
+        # FTS index on chunks.heading_path for keyword matching
+        if "chunks" in self.db.list_tables().tables:
             chunks_table = self.db.open_table("chunks")
             chunks_table.create_fts_index(
-                "heading",
+                "heading_path",
                 stem=False,  # No stemming for technical terms
                 lower_case=True,
                 ascii_folding=True,
@@ -231,7 +231,7 @@ class DatabaseWriter:
             )
 
         # FTS index on guides.headings for keyword matching
-        if "guides" in self.db.table_names():
+        if "guides" in self.db.list_tables().tables:
             guides_table = self.db.open_table("guides")
             guides_table.create_fts_index(
                 "headings",

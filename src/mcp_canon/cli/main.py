@@ -287,13 +287,6 @@ def list_guides(
             help="Filter by technology stack.",
         ),
     ] = None,
-    tags: Annotated[
-        str | None,
-        typer.Option(
-            "--tags",
-            help="Filter by tags (comma-separated).",
-        ),
-    ] = None,
     json_output: Annotated[
         bool,
         typer.Option(
@@ -311,9 +304,6 @@ def list_guides(
     if not engine.is_initialized():
         console.print("[yellow]⚠️  Database not initialized. Run 'canon index' first.[/yellow]")
         raise typer.Exit(1)
-
-    # Parse tags
-    [t.strip() for t in tags.split(",")] if tags else None
 
     guides = engine.list_guides(namespace=namespace)
 

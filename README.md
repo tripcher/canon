@@ -391,6 +391,14 @@ If you installed via pip instead of uvx:
 
 ---
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Writing Guides](docs/writing-guides.md) | How to write guides that index well — frontmatter schema, content structure best practices, and search optimization |
+
+---
+
 ## MCP Tools
 
 | Tool | Description |

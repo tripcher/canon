@@ -18,7 +18,6 @@ from mcp_canon.schemas.search import (
     FullGuide,
     GuideListItem,
     GuideSearchResult,
-    TaskSearchResult,
 )
 
 __all__ = [
@@ -42,7 +41,6 @@ __all__ = [
     "GuideListItem",
     "ChunkSearchResult",
     "GuideSearchResult",
-    "TaskSearchResult",
     "FullGuide",
     "DatabaseInfo",
 ]

@@ -5,8 +5,10 @@ Uses LanceDB native vector search with bge-m3 embeddings.
 
 import re
 from pathlib import Path
+from typing import Any
 
 import lancedb
+from lancedb.embeddings import get_registry
 from lancedb.rerankers import RRFReranker
 
 from mcp_canon.logging import get_logger
@@ -14,7 +16,6 @@ from mcp_canon.schemas.database import (
     EMBEDDING_MODEL_NAME,
     ChunkSchema,
     DatabaseMetadata,
-    GuideSchema,
 )
 from mcp_canon.schemas.search import (
     ChunkSearchResult,
@@ -39,6 +40,7 @@ class SearchEngine:
         """
         self.db_path = Path(db_path)
         self._db: lancedb.DBConnection | None = None
+        self._embedding_func: Any | None = None
 
     @property
     def db(self) -> lancedb.DBConnection:
@@ -47,9 +49,18 @@ class SearchEngine:
             self._db = lancedb.connect(str(self.db_path))
         return self._db
 
+    def _embed_query(self, query: str) -> list[float]:
+        """Embed a query string using the same model as ingestion."""
+        if self._embedding_func is None:
+            self._embedding_func = (
+                get_registry().get("sentence-transformers").create(name=EMBEDDING_MODEL_NAME)
+            )
+        vectors = self._embedding_func.compute_query_embeddings(query)
+        return vectors[0]  # type: ignore[no-any-return]
+
     def is_initialized(self) -> bool:
         """Check if database is initialized."""
-        return self.db_path.exists() and "guides" in self.db.table_names()
+        return self.db_path.exists() and "guides" in self.db.list_tables().tables
 
     def list_guides(
         self,
@@ -64,7 +75,7 @@ class SearchEngine:
         Returns:
             List of guide metadata
         """
-        if "guides" not in self.db.table_names():
+        if "guides" not in self.db.list_tables().tables:
             return []
 
         guides_table = self.db.open_table("guides")
@@ -79,17 +90,17 @@ class SearchEngine:
         if filter_expr:
             query = query.where(filter_expr)
 
-        guides = query.to_pydantic(GuideSchema)
+        df = query.select(["id", "name", "namespace", "tags", "description"]).to_pandas()
 
         return [
             GuideListItem(
-                id=g.id,
-                name=g.name,
-                namespace=g.namespace,
-                tags=g.tags,
-                description=g.description,
+                id=row["id"],
+                name=row["name"],
+                namespace=row["namespace"],
+                tags=row["tags"],
+                description=row["description"],
             )
-            for g in guides
+            for _, row in df.iterrows()
         ]
 
     def search_chunks(
@@ -115,7 +126,7 @@ class SearchEngine:
         Returns:
             List of matching chunks, empty if query is irrelevant to all guides
         """
-        if "chunks" not in self.db.table_names():
+        if "chunks" not in self.db.list_tables().tables:
             return []
 
         # Skip relevance check if searching within a specific guide
@@ -153,7 +164,7 @@ class SearchEngine:
                 query,
                 query_type="hybrid",
                 vector_column_name="vector",
-                fts_columns=["heading"],  # FTS only on heading for keyword boost
+                fts_columns=["heading_path"],  # FTS only on heading for keyword boost
             )
             .distance_type("cosine")
             .rerank(RRFReranker())
@@ -198,13 +209,11 @@ class SearchEngine:
             namespace: Filter by technology stack
             limit: Maximum results
             min_similarity: Minimum cosine similarity (0-1, higher = more similar).
-                           Threshold 0.72 filters unrelated queries while allowing
-                           related topics like 'rate limiting' (similarity ~0.75).
 
         Returns:
             List of matching guides, empty if no relevant guides found
         """
-        if "guides" not in self.db.table_names():
+        if "guides" not in self.db.list_tables().tables:
             return []
 
         guides_table = self.db.open_table("guides")
@@ -215,10 +224,13 @@ class SearchEngine:
             safe_tech = self._sanitize_filter_value(namespace)
             filter_expr = f"namespace = '{safe_tech}'"
 
+        # Embed query manually (guides table has no persisted embedding function)
+        query_vector = self._embed_query(query)
+
         # Vector search with cosine similarity
         search = (
             guides_table.search(
-                query,
+                query_vector,
                 query_type="vector",
                 vector_column_name="summary_vector",
             )
@@ -262,35 +274,39 @@ class SearchEngine:
         Returns:
             Full guide or None if not found
         """
-        if "guides" not in self.db.table_names():
+        if "guides" not in self.db.list_tables().tables:
             return None
 
         safe_guide_id = self._sanitize_filter_value(guide_id, allow_slash=True)
 
         guides_table = self.db.open_table("guides")
-        guides = (
-            guides_table.search().where(f"id = '{safe_guide_id}'").limit(1).to_pydantic(GuideSchema)
+        df = (
+            guides_table.search()
+            .where(f"id = '{safe_guide_id}'")
+            .limit(1)
+            .select(["id", "name", "namespace", "tags", "description"])
+            .to_pandas()
         )
 
-        if not guides:
+        if len(df) == 0:
             return None
 
-        guide = guides[0]
+        row = df.iloc[0]
         content = self._get_guide_content(guide_id)
 
         return FullGuide(
-            id=guide.id,
-            name=guide.name,
-            namespace=guide.namespace,
-            tags=guide.tags,
-            description=guide.description,
+            id=row["id"],
+            name=row["name"],
+            namespace=row["namespace"],
+            tags=row["tags"],
+            description=row["description"],
             content=content,
             char_count=len(content),
         )
 
     def _get_guide_content(self, guide_id: str) -> str:
         """Reconstruct guide content from chunks."""
-        if "chunks" not in self.db.table_names():
+        if "chunks" not in self.db.list_tables().tables:
             return ""
 
         safe_guide_id = self._sanitize_filter_value(guide_id, allow_slash=True)
@@ -369,13 +385,13 @@ class SearchEngine:
         if not info.initialized:
             return info
 
-        if "guides" in self.db.table_names():
+        if "guides" in self.db.list_tables().tables:
             info.guides_count = self.db.open_table("guides").count_rows()
 
-        if "chunks" in self.db.table_names():
+        if "chunks" in self.db.list_tables().tables:
             info.chunks_count = self.db.open_table("chunks").count_rows()
 
-        if "_metadata" in self.db.table_names():
+        if "_metadata" in self.db.list_tables().tables:
             table = self.db.open_table("_metadata")
             metadata_list = table.search().limit(1).to_pydantic(DatabaseMetadata)
             if metadata_list:

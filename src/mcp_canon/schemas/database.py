@@ -33,15 +33,14 @@ class GuideSchema(LanceModel):  # type: ignore[misc]
     name: str
     namespace: str
     tags: list[str]
-    description: str = _embedding_func.SourceField()  # Source for embedding
+    description: str
     source_type: str
     source_url: str | None = None
     file_path: str
     content_hash: str
     indexed_at: str
-    description_vector: Vector(EMBEDDING_DIM) = _embedding_func.VectorField()  # type: ignore[valid-type]
     # Multi-vector search fields
-    summary: str  # Extractive summary (10% of content)
+    summary: str = _embedding_func.SourceField()  # Extractive summary (10% of content)
     summary_vector: Vector(EMBEDDING_DIM) = _embedding_func.VectorField(default=None)  # type: ignore[valid-type]
     headings: str  # Concatenated chunk headings (FTS indexed)
 

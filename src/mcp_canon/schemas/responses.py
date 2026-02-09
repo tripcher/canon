@@ -22,7 +22,7 @@ class ListGuidesResponse(BaseModel):
     guides: list[GuideInfo] = Field(..., description="List of guide metadata")
 
 
-# === search_global_best_practices ===
+# === search_best_practices ===
 
 
 class SearchResult(BaseModel):
@@ -38,7 +38,7 @@ class SearchResult(BaseModel):
 
 
 class SearchResultsResponse(BaseModel):
-    """Response for search_global_best_practices tool."""
+    """Response for search_best_practices tool."""
 
     query: str = Field(..., description="Original search query")
     total_results: int = Field(..., description="Number of results returned")

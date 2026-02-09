@@ -21,11 +21,6 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-[project.urls]
-Homepage = "https://github.com/tripcher/canon"
-Repository = "https://github.com/tripcher/canon"
-Issues = "https://github.com/tripcher/canon/issues"
-
 dependencies = [
     # === CORE (minimal for inference) ===
     "mcp>=1.0.0",
@@ -69,10 +64,9 @@ canon = "mcp_canon.cli.main:app"
 mcp-canon = "mcp_canon.server.mcp:main"
 
 [project.urls]
-Homepage = "https://github.com/your-org/mcp-canon"
-Documentation = "https://github.com/your-org/mcp-canon#readme"
-Repository = "https://github.com/your-org/mcp-canon"
-Changelog = "https://github.com/your-org/mcp-canon/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/tripcher/canon"
+Repository = "https://github.com/tripcher/canon"
+Issues = "https://github.com/tripcher/canon/issues"
 
 [build-system]
 requires = ["hatchling"]

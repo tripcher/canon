@@ -27,11 +27,11 @@ jobs:
       - name: Install dependencies (with indexing)
         run: uv sync --extra indexing
 
-      - name: Cache FastEmbed model
+      - name: Cache embedding model
         uses: actions/cache@v4
         with:
-          path: ~/.cache/fastembed
-          key: fastembed-bge-base-en-v1.5
+          path: ~/.cache/torch/sentence_transformers
+          key: nomic-embed-text-v1.5
 
       # ⚠️ CRITICAL: Generate vector database before build
       - name: Run Ingestion Pipeline
