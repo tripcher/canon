@@ -30,12 +30,14 @@ jobs:
       - name: Cache embedding model
         uses: actions/cache@v4
         with:
-          path: ~/.cache/fastembed
+          path: ${{ github.workspace }}/.fastembed_cache
           key: fastembed-nomic-embed-text-v1.5-Q
 
       # ⚠️ CRITICAL: Generate vector database before build
       - name: Run Ingestion Pipeline
         timeout-minutes: 10
+        env:
+          FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.fastembed_cache
         run: uv run canon index --library ./library
 
       - name: Verify database generated
