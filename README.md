@@ -386,8 +386,12 @@ If you installed via pip instead of uvx:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CANON_DB_PATH` | Path to custom database | Bundled DB |
+| `CANON_EMBEDDING_MODEL` | Fastembed model name ([supported models](https://qdrant.github.io/fastembed/examples/Supported_Models/)) | `nomic-ai/nomic-embed-text-v1.5-Q` |
+| `CANON_EMBEDDING_DIM` | Embedding vector dimensions (must match model) | `768` |
 | `CANON_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR) | INFO |
 | `CANON_LOG_JSON` | Output logs in JSON format | false |
+
+> **Note:** Changing `CANON_EMBEDDING_MODEL` or `CANON_EMBEDDING_DIM` requires a full reindex: `canon index --library ./library`
 
 ---
 

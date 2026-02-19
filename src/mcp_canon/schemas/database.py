@@ -1,14 +1,39 @@
-"""LanceDB database schemas with embedded embedding function for native hybrid search."""
+"""LanceDB database schemas with fastembed embedding function for native hybrid search."""
 
-from lancedb.embeddings import get_registry
+import os
+from functools import cached_property
+from typing import Any
+
+from lancedb.embeddings import TextEmbeddingFunction, get_registry, register
 from lancedb.pydantic import LanceModel, Vector
 
-# Static embedding model - cannot be overridden
-# Using nomic-embed-text-v1.5: 768 dims, English, 8192 tokens context, 0.5 GB
-EMBEDDING_MODEL_NAME = "nomic-ai/nomic-embed-text-v1.5"
-EMBEDDING_DIM = 768
+EMBEDDING_MODEL_NAME = os.getenv("CANON_EMBEDDING_MODEL", "nomic-ai/nomic-embed-text-v1.5-Q")
+EMBEDDING_DIM = int(os.getenv("CANON_EMBEDDING_DIM", "768"))
 
-_embedding_func = get_registry().get("sentence-transformers").create(name=EMBEDDING_MODEL_NAME)
+
+@register("fastembed")
+class FastEmbedEmbedder(TextEmbeddingFunction):  # type: ignore[misc]
+    """Custom LanceDB embedding function using fastembed (ONNX-based, no PyTorch)."""
+
+    model_name: str = EMBEDDING_MODEL_NAME
+
+    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings for a list of texts."""
+        return [embedding.tolist() for embedding in self._model.embed(texts)]
+
+    def ndims(self) -> int:
+        """Return embedding dimensions."""
+        return EMBEDDING_DIM
+
+    @cached_property
+    def _model(self) -> Any:
+        """Lazy-load the fastembed model."""
+        from fastembed import TextEmbedding
+
+        return TextEmbedding(self.model_name)
+
+
+_embedding_func = get_registry().get("fastembed").create(model_name=EMBEDDING_MODEL_NAME)
 
 
 class ChunkSchema(LanceModel):  # type: ignore[misc]

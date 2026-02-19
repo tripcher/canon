@@ -1,6 +1,6 @@
 """Vector search engine for querying LanceDB using Pydantic models.
 
-Uses LanceDB native vector search with bge-m3 embeddings.
+Uses LanceDB native vector search with fastembed ONNX embeddings.
 """
 
 import re
@@ -53,7 +53,7 @@ class SearchEngine:
         """Embed a query string using the same model as ingestion."""
         if self._embedding_func is None:
             self._embedding_func = (
-                get_registry().get("sentence-transformers").create(name=EMBEDDING_MODEL_NAME)
+                get_registry().get("fastembed").create(model_name=EMBEDDING_MODEL_NAME)
             )
         vectors = self._embedding_func.compute_query_embeddings(query)
         return vectors[0]  # type: ignore[no-any-return]

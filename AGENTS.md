@@ -41,7 +41,7 @@
 |-----------|---------|---------|
 | MCP Protocol | `mcp` | Communication with LLM clients |
 | Vector Database | `lancedb` | Embedded vector storage |
-| Embeddings | `sentence-transformers` | Text vectorization (nomic-embed, bge-m3) |
+| Embeddings | `fastembed` | ONNX-based text vectorization (nomic-embed-v1.5-Q default) |
 | CLI | `typer` | Command-line interface |
 | Data Validation | `pydantic` | Schema validation |
 | HTTP Server | `uvicorn` + `starlette` | Streamable HTTP (optional) |
@@ -220,7 +220,7 @@ canon/
 - **Validation:** YAML frontmatter parsing
 - **Resolution:** Fetch local/remote content
 - **Chunking:** Markdown header-based splitting
-- **Embedding:** sentence-transformers vectorization
+- **Embedding:** fastembed ONNX vectorization (configurable via `CANON_EMBEDDING_MODEL` env var)
 - **Writing:** LanceDB table creation
 
 ### 4. Schema Layer (`schemas/`)
@@ -486,12 +486,15 @@ results = (
 )
 ```
 
-#### sentence-transformers
+#### fastembed
 ```python
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
-model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True)
-embeddings = model.encode(["text 1", "text 2"])
+model = TextEmbedding("nomic-ai/nomic-embed-text-v1.5-Q")  # Default model, 768 dims
+embeddings = list(model.embed(["text 1", "text 2"]))
+
+# Configure via environment variables:
+# CANON_EMBEDDING_MODEL="BAAI/bge-small-en-v1.5" CANON_EMBEDDING_DIM=384
 ```
 
 #### Typer CLI
@@ -531,6 +534,6 @@ logger.error("Operation failed", error=str(e))
 - **Avoid ignoring test failures** — CI blocks merge on failures
 - **Avoid using print()** — use structured logging
 - **Avoid hardcoding paths** — use environment variables (`CANON_DB_PATH`)
-- **Avoid changing embedding model** — must match indexed model
+- **Avoid changing embedding model without reindexing** — set `CANON_EMBEDDING_MODEL` + `CANON_EMBEDDING_DIM` env vars and run `canon index`
 - **Avoid creating large chunks** — keep under 8KB for LLM context
 - **Avoid forgetting to validate** — run `make check` before committing
