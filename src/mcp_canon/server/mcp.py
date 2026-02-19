@@ -100,7 +100,9 @@ Search:
 def get_search_engine() -> SearchEngine:
     """Get cached search engine instance."""
     logger.debug("Initializing SearchEngine with db_path=%s", DB_PATH)
-    return SearchEngine(DB_PATH)
+    engine = SearchEngine(DB_PATH)
+    engine.preload_model()
+    return engine
 
 
 # Health check endpoint for monitoring

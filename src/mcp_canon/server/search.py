@@ -4,6 +4,7 @@ Uses LanceDB native vector search with fastembed ONNX embeddings.
 """
 
 import re
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,35 @@ class SearchEngine:
         self.db_path = Path(db_path)
         self._db: lancedb.DBConnection | None = None
         self._embedding_func: Any | None = None
+        self._model_ready = threading.Event()
+        self._preloading = False
+        self._preload_error: Exception | None = None
+
+    def preload_model(self) -> None:
+        """Start loading the embedding model in a background thread.
+
+        Call this at server startup so the model is ready when the first
+        search request arrives. If the request comes before the model
+        is loaded, ``_embed_query`` will block until loading completes.
+        """
+        self._preloading = True
+
+        def _load() -> None:
+            try:
+                logger.info("Preloading embedding model in background...")
+                func = get_registry().get("fastembed").create(model_name=EMBEDDING_MODEL_NAME)
+                # Warmup: trigger actual ONNX model download/load
+                func.compute_query_embeddings("warmup")
+                self._embedding_func = func
+                logger.info("Embedding model ready")
+            except Exception as exc:
+                self._preload_error = exc
+                logger.error("Failed to preload embedding model: %s", exc)
+            finally:
+                self._model_ready.set()
+
+        thread = threading.Thread(target=_load, daemon=True)
+        thread.start()
 
     @property
     def db(self) -> lancedb.DBConnection:
@@ -52,9 +82,17 @@ class SearchEngine:
     def _embed_query(self, query: str) -> list[float]:
         """Embed a query string using the same model as ingestion."""
         if self._embedding_func is None:
-            self._embedding_func = (
-                get_registry().get("fastembed").create(model_name=EMBEDDING_MODEL_NAME)
-            )
+            if self._preloading:
+                # Background preload in progress — wait for it
+                self._model_ready.wait()
+                if self._preload_error:
+                    raise self._preload_error
+            else:
+                # No preload was started — load synchronously (CLI, tests)
+                self._embedding_func = (
+                    get_registry().get("fastembed").create(model_name=EMBEDDING_MODEL_NAME)
+                )
+        assert self._embedding_func is not None
         vectors = self._embedding_func.compute_query_embeddings(query)
         return vectors[0]  # type: ignore[no-any-return]
 
