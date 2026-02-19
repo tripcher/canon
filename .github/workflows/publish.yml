@@ -30,11 +30,12 @@ jobs:
       - name: Cache embedding model
         uses: actions/cache@v4
         with:
-          path: ~/.cache/torch/sentence_transformers
-          key: nomic-embed-text-v1.5
+          path: ~/.cache/fastembed
+          key: fastembed-nomic-embed-text-v1.5-Q
 
       # ⚠️ CRITICAL: Generate vector database before build
       - name: Run Ingestion Pipeline
+        timeout-minutes: 10
         run: uv run canon index --library ./library
 
       - name: Verify database generated
