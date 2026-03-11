@@ -302,6 +302,28 @@ CANON_DB_PATH=/path/to/db canon serve --port 8080
 
 > **Note:** Changing `CANON_EMBEDDING_MODEL` or `CANON_EMBEDDING_DIM` requires a full reindex: `canon index --library ./library`
 
+### Change embedding model and dimensions
+
+Internal constants `EMBEDDING_MODEL_NAME` and `EMBEDDING_DIM` are configured via:
+- `CANON_EMBEDDING_MODEL`
+- `CANON_EMBEDDING_DIM`
+
+Example (using `BAAI/bge-small-en-v1.5`, 384 dims):
+
+```bash
+CANON_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5 \
+CANON_EMBEDDING_DIM=384 \
+canon index --library ./library --output ./my-db
+```
+
+Where to find available models:
+- FastEmbed supported models: <https://qdrant.github.io/fastembed/examples/Supported_Models/>
+- FastEmbed model card and usage notes: <https://qdrant.github.io/fastembed/>
+
+Important:
+- `CANON_EMBEDDING_DIM` must match the selected model output size.
+- After changing model or dimension, rebuild the index before running search/server commands.
+
 ---
 
 ## MCP Tools
