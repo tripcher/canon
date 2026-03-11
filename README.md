@@ -1,38 +1,27 @@
 # mcp-canon
 
-MCP server providing architectural patterns and best practices to LLM agents via RAG.
+Universal MCP knowledge server for LLM agents, powered by local RAG.
 
-## Installation
+Use Canon to provide domain-specific best practices and playbooks across software engineering,
+marketing, video editing, and other knowledge areas.
 
-### Standard (with bundled guides)
-```bash
-pip install mcp-canon
-```
-Includes pre-populated database with best practices for Python, Docker, Kubernetes, etc.
-
-### With indexing support
-```bash
-pip install "mcp-canon[indexing]"
-```
-Required for creating your own knowledge base from Markdown files.
-
-### With HTTP server support
-```bash
-pip install "mcp-canon[http]"
-```
-
-### Development (all dependencies)
-```bash
-pip install "mcp-canon[dev]"
-```
+Typical workflows:
+- Find the most suitable guide for a task
+- Retrieve concise best-practice snippets
+- Read full guides for deeper execution context
 
 ---
 
 ## Quick Start
 
-### Option 1: Using bundled guides (zero configuration)
+<details>
+<summary><b>Install in Cursor</b></summary>
 
-Just install and configure your MCP client — the bundled database works immediately.
+Go to: `Settings` -> `Cursor Settings` -> `MCP` -> `Add new global MCP server`
+
+Pasting the following configuration into your Cursor `~/.cursor/mcp.json` file is the recommended approach. You may also install in a specific project by creating `.cursor/mcp.json` in your project folder. See [Cursor MCP docs](https://docs.cursor.com/context/model-context-protocol) for more info.
+
+#### Cursor Local Connection
 
 ```json
 {
@@ -43,82 +32,9 @@ Just install and configure your MCP client — the bundled database works immedi
     }
   }
 }
-```
-
----
-
-### Option 2: Create and index your own guides
-
-Complete workflow from installation to running with custom guides.
-
-#### Step 1: Install with indexing support
-
-```bash
-pip install "mcp-canon[indexing]"
-```
-
-#### Step 2: Create library structure
 
 ```
-my-library/
-├── python/
-│   └── fastapi-guide/
-│       ├── INDEX.md      # Required: metadata
-│       └── GUIDE.md      # Content
-└── docker/
-    └── best-practices/
-        └── INDEX.md      # Can reference external URL
-```
-
-#### Step 3: Create INDEX.md with frontmatter
-
-```bash
-mkdir -p my-library/python/fastapi-guide
-```
-
-Create `my-library/python/fastapi-guide/INDEX.md`:
-
-```yaml
----
-name: fastapi-guide
-description: "Production-ready FastAPI patterns and best practices"
-metadata:
-  tags:
-    - python
-    - fastapi
-    - api
-    - production
-  type: local
----
-```
-
-#### Step 4: Add guide content
-
-Create `my-library/python/fastapi-guide/GUIDE.md`:
-
-```markdown
-# FastAPI Production Guide
-
-## Project Structure
-...
-
-## Error Handling
-...
-```
-
-#### Step 5: Index your library
-
-```bash
-# Index to custom location
-canon index --library ./my-library --output /path/to/my-db
-
-# Validate frontmatter before indexing (optional)
-canon validate --library ./my-library
-```
-
-#### Step 6: Configure MCP client
-
-**Local mcp** 
+#### Cursor Local Connection With Custom Database
 
 ```json
 {
@@ -134,17 +50,218 @@ canon validate --library ./my-library
 }
 ```
 
-### Option 3: Running as HTTP server
+#### Cursor Remote Server Connection
+
+```json
+{
+  "mcpServers": {
+    "canon": {
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>Install in Claude Code</b></summary>
+
+Run this command. See [Claude Code MCP docs](https://code.claude.com/docs/en/mcp) for more info.
+
+#### Claude Code Local Connection
+
+```sh
+claude mcp add --scope user canon -- uvx mcp-canon
+```
+
+#### Cursor Local Connection With Custom Database
+
+
+```sh
+claude mcp add --scope user -e CANON_DB_PATH=/path/to/my-db canon -- uvx mcp-canon
+```
+
+#### Claude Code Remote Server Connection
+
+```sh
+claude mcp add --scope user --transport http canon http://localhost:8080/mcp
+```
+
+> Remove `--scope user` to install for the current project only.
+
+</details>
+
+<details>
+<summary><b>Install in Opencode</b></summary>
+
+Add this to your Opencode configuration file. See [Opencode MCP docs](https://opencode.ai/docs/mcp-servers) for more info.
+
+
+#### Opencode Local Connection
+
+```json
+{
+  "mcp": {
+    "canon": {
+      "type": "local",
+      "command": ["uvx", "mcp-canon"],
+      "enabled": true
+    }
+  }
+}
+```
+
+#### Opencode Local Connection With Custom Database
+
+```json
+{
+  "mcp": {
+    "canon": {
+      "type": "local",
+      "command": ["uvx", "mcp-canon"],
+      "enabled": true,
+      "environment": {
+        "CANON_DB_PATH": "/path/to/my-db"
+      }
+    }
+  }
+}
+```
+
+#### Opencode Remote Server Connection
+
+```json
+"mcp": {
+  "context7": {
+    "type": "remote",
+    "url": "http://localhost:8080/mcp",
+    "enabled": true
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>Install in Gemini CLI</b></summary>
+
+Run this command. See [Gemini CLI MCP docs](https://geminicli.com/docs/tools/mcp-server/) for more
+info.
+
+#### Gemini CLI Local Connection
+
+```sh
+gemini mcp add --scope user canon uvx mcp-canon
+```
+
+#### Gemini CLI Local Connection With Custom Database
+
+```sh
+gemini mcp add --scope user -e CANON_DB_PATH=/path/to/my-db canon uvx mcp-canon
+```
+
+#### Gemini CLI Remote Server Connection
+
+```sh
+gemini mcp add --scope user --transport http canon http://localhost:8080/mcp
+```
+
+> Remove `--scope user` to install for the current project only.
+
+</details>
+
+<details>
+<summary><b>Install in Google Antigravity</b></summary>
+
+Go to the agent panel and open: `...` -> `MCP Servers` -> `Manage MCP Servers` -> `View raw config`.
+Add this to your `mcp_config.json` file. See [Google Antigravity MCP docs](https://antigravity.google/docs/mcp#connecting-custom-mcp-servers) for more info.
+
+#### Google Antigravity Local Connection
+
+```json
+{
+  "mcpServers": {
+    "canon": {
+      "command": "uvx",
+      "args": ["mcp-canon"]
+    }
+  }
+}
+```
+
+#### Google Antigravity Local Connection With Custom Database
+
+```json
+{
+  "mcpServers": {
+    "canon": {
+      "command": "uvx",
+      "args": ["mcp-canon"],
+      "env": {
+        "CANON_DB_PATH": "/path/to/my-db"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+---
+
+## Create and index your own guides
+
+Complete workflow from installation to running with your own domain guides.
+
+### Step 1: Install with indexing support
+
+```bash
+pip install "mcp-canon[indexing]"
+```
+
+### Step 2: Create library structure
+
+```
+my-library/
+├── engineering/
+│   └── python-fastapi-guide/
+│       ├── INDEX.md      # Required: metadata
+│       └── GUIDE.md      # Content
+├── marketing/
+│   └── launch-playbook/
+│       ├── INDEX.md
+│       └── GUIDE.md
+└── video-editing/
+    └── shorts-workflow/
+        └── INDEX.md      # Can reference external URL
+```
+### Step 3: [Create guides](docs/writing-guides.md)
+
+
+
+### Step 4: Index your library
+
+```bash
+# Index to custom location
+canon index --library ./my-library --output /path/to/my-db
+
+# Validate frontmatter before indexing (optional)
+canon validate --library ./my-library
+```
+
+## Running as HTTP server
 
 For remote access or multi-client scenarios, run Canon as an HTTP server.
+This is useful when multiple agents or teams share one cross-domain knowledge base.
 
-#### Step 1: Install with HTTP support
+### Step 1: Install with HTTP support
 
 ```bash
 pip install "mcp-canon[http]"
 ```
 
-#### Step 2: Start the server
+### Step 2: Start the server
 
 ```bash
 # Default port 8080
@@ -157,7 +274,7 @@ canon serve --port 3000 --host 0.0.0.0
 CANON_DB_PATH=/path/to/db canon serve --port 8080
 ```
 
-#### Step 3: Configure MCP client
+### Step 3: Configure MCP client
 
 ```json
 {
@@ -169,217 +286,6 @@ CANON_DB_PATH=/path/to/db canon serve --port 8080
 }
 ```
 
-#### Step 4: Verify connection
-
-```bash
-# Health check
-curl http://localhost:8080/health
-```
-
-## MCP Client Configuration
-
-Configuration examples for popular MCP clients. Replace `CANON_DB_PATH` with your database path if using a custom database.
-
-### Claude Desktop
-
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-With custom database:
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"],
-      "env": {
-        "CANON_DB_PATH": "/path/to/your/db"
-      }
-    }
-  }
-}
-```
-
-### Cursor
-
-**Settings:** `Cursor Settings > Features > MCP Servers > Add new MCP server`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### VS Code (GitHub Copilot)
-
-**File:** `.vscode/mcp.json` (project) or user settings
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### Windsurf
-
-**File:** `~/.codeium/windsurf/mcp_config.json`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### JetBrains AI Assistant
-
-**Settings:** `Settings > Tools > AI Assistant > Model Context Protocol (MCP) > + Add`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### Gemini CLI
-
-**File:** `~/.gemini/settings.json`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### Claude Code CLI
-
-```bash
-claude mcp add canon -- uvx mcp-canon
-```
-
-### Roo Code / Kilo Code
-
-**File:** `.roo/mcp.json` or `.kilocode/mcp.json`
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "uvx",
-      "args": ["mcp-canon"]
-    }
-  }
-}
-```
-
-### Augment Code
-
-**File:** VS Code settings under `augment.advanced`
-
-```json
-{
-  "augment.advanced": {
-    "mcpServers": [
-      {
-        "name": "canon",
-        "command": "uvx",
-        "args": ["mcp-canon"]
-      }
-    ]
-  }
-}
-```
-
-### Warp
-
-**Settings:** `Settings > AI > Manage MCP servers > + Add`
-
-```json
-{
-  "canon": {
-    "command": "uvx",
-    "args": ["mcp-canon"],
-    "env": {},
-    "start_on_launch": true
-  }
-}
-```
-
-### OpenAI Codex CLI
-
-**File:** `~/.codex/config.toml`
-
-```toml
-[mcp_servers.canon]
-command = "uvx"
-args = ["mcp-canon"]
-```
-
-### HTTP Server Connection
-
-For clients supporting remote MCP servers (after running `canon serve`):
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "url": "http://localhost:8080/mcp"
-    }
-  }
-}
-```
-
-### Using pip instead of uvx
-
-If you installed via pip instead of uvx:
-
-```json
-{
-  "mcpServers": {
-    "canon": {
-      "command": "python",
-      "args": ["-m", "mcp_canon"]
-    }
-  }
-}
-```
-
----
 
 ## Environment Variables
 
@@ -398,21 +304,13 @@ If you installed via pip instead of uvx:
 
 ---
 
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Writing Guides](docs/writing-guides.md) | How to write guides that index well — frontmatter schema, content structure best practices, and search optimization |
-
----
-
 ## MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `search_best_practices` | Semantic search for best practices (within a guide if guide_id is provided) |
-| `search_suitable_guides` | Find guides matching a task description |
-| `read_full_guide` | Get complete guide content |
+| `search_best_practices` | Semantic search for best practices in any domain (optionally scoped by guide_id) |
+| `search_suitable_guides` | Find guides that match a task description across domains |
+| `read_full_guide` | Get complete guide content for full context |
 
 ---
 
@@ -420,7 +318,7 @@ If you installed via pip instead of uvx:
 
 ```bash
 # Indexing
-canon index --library ./library           # Index guides (creates new DB)
+canon index --library ./library           # Index guides from any domain (creates new DB)
 canon index --library ./lib --append      # Add to existing database
 canon validate --library ./library        # Validate frontmatter
 
@@ -430,25 +328,6 @@ canon serve --port 8080                   # Start HTTP server (requires [http])
 # Info
 canon list                                # List indexed guides
 canon info                                # Show database info
-```
-
----
-
-## Frontmatter Schema
-
-Required fields in `INDEX.md`:
-
-```yaml
----
-name: guide-name              # Must match folder name
-description: "Guide description for semantic search"
-metadata:
-  tags:                       # From controlled vocabulary
-    - python
-    - fastapi
-  type: local                 # "local" for GUIDE.md, "link" for URL
-  url: https://...            # Required if type: link
----
 ```
 
 ---
