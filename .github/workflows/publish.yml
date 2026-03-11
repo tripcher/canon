@@ -30,14 +30,26 @@ jobs:
       - name: Cache embedding model
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/.fastembed_cache
-          key: fastembed-nomic-embed-text-v1.5-Q
+          path: |
+            ${{ github.workspace }}/.fastembed_cache
+            ${{ github.workspace }}/.hf_cache
+          key: embed-cache-${{ runner.os }}-nomic-embed-text-v1.5-Q-v1
 
       # ⚠️ CRITICAL: Generate vector database before build
       - name: Run Ingestion Pipeline
-        timeout-minutes: 10
+        timeout-minutes: 30
         env:
           FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.fastembed_cache
+          HF_HOME: ${{ github.workspace }}/.hf_cache
+          HUGGINGFACE_HUB_CACHE: ${{ github.workspace }}/.hf_cache/hub
+          CANON_FASTEMBED_THREADS: "1"
+          CANON_FASTEMBED_BATCH_SIZE: "8"
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          MALLOC_ARENA_MAX: "2"
         run: uv run canon index --library ./library
 
       - name: Verify database generated

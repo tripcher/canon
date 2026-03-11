@@ -388,6 +388,9 @@ If you installed via pip instead of uvx:
 | `CANON_DB_PATH` | Path to custom database | Bundled DB |
 | `CANON_EMBEDDING_MODEL` | Fastembed model name ([supported models](https://qdrant.github.io/fastembed/examples/Supported_Models/)) | `nomic-ai/nomic-embed-text-v1.5-Q` |
 | `CANON_EMBEDDING_DIM` | Embedding vector dimensions (must match model) | `768` |
+| `CANON_FASTEMBED_THREADS` | ONNX runtime threads for FastEmbed (lower = less RAM, slower) | auto |
+| `CANON_FASTEMBED_BATCH_SIZE` | Embedding batch size during indexing (lower = less RAM, slower) | `256` |
+| `CANON_FASTEMBED_PARALLEL` | FastEmbed data-parallel workers (`>1` increases RAM usage) | disabled |
 | `CANON_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR) | INFO |
 | `CANON_LOG_JSON` | Output logs in JSON format | false |
 
