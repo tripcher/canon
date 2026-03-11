@@ -5,86 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-# Controlled vocabulary from DATA_TAXONOMY.md
-ALLOWED_TAGS: set[str] = {
-    # Languages
-    "python",
-    "go",
-    "typescript",
-    "javascript",
-    "rust",
-    "java",
-    # Web frameworks
-    "fastapi",
-    "django",
-    "flask",
-    "litestar",
-    "express",
-    "nextjs",
-    # DevOps
-    "docker",
-    "dockerfile",
-    "kubernetes",
-    "helm",
-    "terraform",
-    "ansible",
-    "ci-cd",
-    "istio",
-    # Security
-    "security",
-    "authentication",
-    "authorization",
-    "cryptography",
-    "secrets",
-    # Databases
-    "postgresql",
-    "mysql",
-    "mongodb",
-    "redis",
-    "sqlite",
-    "sql",
-    # Architecture
-    "api",
-    "rest",
-    "graphql",
-    "grpc",
-    "microservices",
-    "monolith",
-    "async",
-    # Testing
-    "testing",
-    "unit-testing",
-    "integration-testing",
-    "e2e",
-    "mocking",
-    # Code quality
-    "style",
-    "linting",
-    "typing",
-    "documentation",
-    "logging",
-    "error-handling",
-    # Deployment
-    "production",
-    "deployment",
-    "monitoring",
-    "performance",
-    "scaling",
-    "caching",
-    # ORM / Data layer
-    "sqlalchemy",
-    "pydantic",
-    "alembic",
-    "orm",
-    # Web
-    "web",
-    "http",
-    "websocket",
-    "cors",
-    "middleware",
-    "containerization",
-}
-
 # Kebab-case pattern
 KEBAB_CASE_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -98,17 +18,6 @@ class GuideMetadata(BaseModel):
     format: Literal["markdown", "html", "pdf", "docx"] | None = Field(
         None, description="Format of external document (required if type=link)"
     )
-
-    @field_validator("tags")
-    @classmethod
-    def validate_tags(cls, v: list[str]) -> list[str]:
-        """Validate that all tags are from controlled vocabulary."""
-        invalid_tags = [tag for tag in v if tag not in ALLOWED_TAGS]
-        if invalid_tags:
-            raise ValueError(
-                f"Unknown tags: {invalid_tags}. See DATA_TAXONOMY.md for allowed tags."
-            )
-        return v
 
     def model_post_init(self, __context: object) -> None:
         """Validate that url and format are present if type is link."""
@@ -145,14 +54,13 @@ class ValidationError(BaseModel):
     file_path: str | None = None
 
 
-# Error codes mapping (from DATA_TAXONOMY.md)
+# Error codes mapping
 ERROR_CODES = {
     "E001": "Invalid name format. Expected kebab-case.",
     "E002": "Name mismatch. 'name' field must match directory name.",
     "E003": "Description too short. Minimum 20 characters.",
     "E004": "Description too long. Maximum 500 characters.",
     "E005": "At least one tag is required.",
-    "E006": "Unknown tag: '{tag}'. See DATA_TAXONOMY.md.",
     "E007": "URL is required for type: link.",
     "E008": "Format is required for type: link.",
     "E009": "Invalid URL format.",

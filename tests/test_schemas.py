@@ -4,7 +4,6 @@ import pytest
 from pydantic import ValidationError
 
 from mcp_canon.schemas.frontmatter import (
-    ALLOWED_TAGS,
     GuideFrontmatter,
     GuideMetadata,
 )
@@ -51,13 +50,13 @@ class TestGuideMetadata:
                 url="https://example.com",
             )
 
-    def test_invalid_tag(self):
-        """Test that unknown tags are rejected."""
-        with pytest.raises(ValidationError, match="Unknown tag"):
-            GuideMetadata(
-                tags=["not-a-valid-tag"],
-                type="local",
-            )
+    def test_arbitrary_tags_allowed(self):
+        """Test that any domain tags are accepted."""
+        metadata = GuideMetadata(
+            tags=["python", "marketing-funnel", "video-editing"],
+            type="local",
+        )
+        assert metadata.tags == ["python", "marketing-funnel", "video-editing"]
 
     def test_empty_tags_rejected(self):
         """Test that empty tags list is rejected."""
@@ -106,28 +105,3 @@ class TestGuideFrontmatter:
                 description="x" * 501,
                 metadata=GuideMetadata(tags=["python"], type="local"),
             )
-
-
-class TestAllowedTags:
-    """Tests for controlled vocabulary."""
-
-    def test_common_tags_exist(self):
-        """Test that common tags are in the vocabulary."""
-        common_tags = [
-            "python",
-            "go",
-            "docker",
-            "kubernetes",
-            "fastapi",
-            "django",
-            "security",
-            "api",
-        ]
-        for tag in common_tags:
-            assert tag in ALLOWED_TAGS, f"Tag '{tag}' should be allowed"
-
-    def test_synonyms_not_allowed(self):
-        """Test that common synonyms are not in vocabulary."""
-        synonyms = ["py", "k8s", "js", "ts", "auth"]
-        for tag in synonyms:
-            assert tag not in ALLOWED_TAGS, f"Synonym '{tag}' should not be allowed"

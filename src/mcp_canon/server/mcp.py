@@ -408,14 +408,9 @@ _TECH_STACK_DESC = (
 )
 
 _TAGS_DESC = (
-    "Semantic filters from controlled vocabulary. "
-    "Categories: Frameworks (fastapi, django, flask), "
-    "Security (security, authentication, authorization), "
-    "Architecture (api, rest, graphql, microservices, async), "
-    "Databases (postgresql, mongodb, sqlalchemy), "
-    "Testing (testing, unit-testing, mocking), "
-    "Deployment (production, performance, monitoring). "
-    "Example: ['django', 'security']"
+    "Optional free-form semantic filters. "
+    "Use tags meaningful for your domain (e.g., engineering, marketing, video editing). "
+    "Example: ['python', 'lead-generation', 'color-grading']"
 )
 
 

@@ -122,9 +122,6 @@ def validate_frontmatter(
             if "at least 1" in msg.lower() or "empty" in msg.lower():
                 error_code = "E005"
                 error_message = "At least one tag is required."
-            elif "Unknown tag" in msg:
-                error_code = "E006"
-                error_message = msg
         elif "url" in loc and "required" in msg.lower():
             error_code = "E007"
             error_message = "URL is required for type: link."

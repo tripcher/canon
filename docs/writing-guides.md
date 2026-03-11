@@ -10,7 +10,7 @@ Canon uses a two-level directory structure:
 
 ```
 library/
-├── <namespace>/              # Technology stack (e.g., python, kubernetes)
+├── <namespace>/              # Domain/category (e.g., engineering, marketing, video-editing)
 │   └── <guide-name>/        # Guide directory (kebab-case)
 │       ├── INDEX.md          # Required: metadata (frontmatter)
 │       └── GUIDE.md          # Required for local guides: content
@@ -20,7 +20,7 @@ library/
 ```
 
 **Key rules:**
-- `<namespace>` = top-level technology (e.g., `python`, `docker`, `kubernetes`)
+- `<namespace>` = top-level domain/category (e.g., `engineering`, `marketing`, `video-editing`)
 - `<guide-name>` = kebab-case name matching the frontmatter `name` field
 - Every guide **must** have an `INDEX.md` with valid frontmatter
 - Local guides **must** have a `GUIDE.md` with the content
@@ -50,7 +50,7 @@ metadata:
 |-------|-------|--------|
 | `name` | Kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`), must match folder name | Guide ID = `namespace/name` |
 | `description` | 20–500 characters | Reference info returned in search results and guide listings (not used for search ranking) |
-| `tags` | ≥ 1 tag from [controlled vocabulary](#allowed-tags) | Namespace filtering |
+| `tags` | ≥ 1 free-form tag | Additional filtering signal |
 | `type` | `local` or `link` | Determines content source |
 | `url` | Required if `type: link` | External content URL |
 | `format` | Required if `type: link` (`markdown`, `html`, `pdf`, `docx`) | Parser selection |
@@ -194,23 +194,14 @@ engine = create_engine(
 
 ---
 
-## Allowed Tags
+## Tagging Guidelines
 
-Tags must come from the controlled vocabulary. Using invalid tags will cause validation error `E006`.
+Canon accepts any tags. Tags are not limited to a predefined vocabulary.
 
-| Category | Tags |
-|----------|------|
-| **Languages** | `python`, `go`, `typescript`, `javascript`, `rust`, `java` |
-| **Web Frameworks** | `fastapi`, `django`, `flask`, `litestar`, `express`, `nextjs` |
-| **DevOps** | `docker`, `dockerfile`, `kubernetes`, `helm`, `terraform`, `ansible`, `ci-cd`, `istio` |
-| **Security** | `security`, `authentication`, `authorization`, `cryptography`, `secrets` |
-| **Databases** | `postgresql`, `mysql`, `mongodb`, `redis`, `sqlite`, `sql` |
-| **Architecture** | `api`, `rest`, `graphql`, `grpc`, `microservices`, `monolith`, `async` |
-| **Testing** | `testing`, `unit-testing`, `integration-testing`, `e2e`, `mocking` |
-| **Code Quality** | `style`, `linting`, `typing`, `documentation`, `logging`, `error-handling` |
-| **Deployment** | `production`, `deployment`, `monitoring`, `performance`, `scaling`, `caching` |
-| **ORM / Data** | `sqlalchemy`, `pydantic`, `alembic`, `orm` |
-| **Web** | `web`, `http`, `websocket`, `cors`, `middleware`, `containerization` |
+Use tags as lightweight filters:
+- Keep them short and specific (e.g., `lead-generation`, `color-grading`, `async`)
+- Prefer kebab-case for consistency
+- Use 2-6 tags per guide to improve discoverability
 
 ---
 
@@ -225,7 +216,6 @@ Run `canon validate --library ./library` before indexing. Reference of error cod
 | `E003` | Description too short (< 20 chars) |
 | `E004` | Description too long (> 500 chars) |
 | `E005` | No tags provided |
-| `E006` | Unknown tag — not in controlled vocabulary |
 | `E007` | URL required for `type: link` |
 | `E008` | Format required for `type: link` |
 | `E010` | Unsupported format |
